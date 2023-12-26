@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 from decouple import config
-
+import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -38,6 +38,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'accounts',
+    'vendor',
+    'menu',
+    'marketplace',
+    'customers',
+    'orders',
 ]
 
 MIDDLEWARE = [
@@ -51,11 +58,11 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'foodonline.urls'
-
+TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['templates'],
+        'DIRS': [TEMPLATES_DIR],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -63,12 +70,26 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'accounts.context_processors.get_vendor',
+                'accounts.context_processors.get_user_profile',
+                'accounts.context_processors.get_user_profile',
+                'marketplace.context_processor.get_cart_counter',
+                'marketplace.context_processor.get_cart_amounts',
+
+                'accounts.context_processors.get_paypal_client_id',
+
+
+
             ],
         },
     },
 ]
 
 WSGI_APPLICATION = 'foodonline.wsgi.application'
+
+# media files configuration
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR/'media'
 
 
 # Database
@@ -84,6 +105,7 @@ DATABASES = {
     }
 }
 
+AUTH_USER_MODEL = 'accounts.User'
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -119,7 +141,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'static'
 STATICFILES_DIRS = [
     "foodonline/static"
@@ -129,3 +151,24 @@ STATICFILES_DIRS = [
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+from django.contrib.messages import constants as messages
+MESSAGE_TAGS = {
+    messages.ERROR: 'danger'
+}
+
+# AUTHENTICATION_BACKENDS = [
+#     'django.contrib.auth.backends.ModelBackend',
+#     'accounts.backends.EmailBackend',
+# ]
+
+# Email configuration
+EMAIL_HOST = config('EMAIL_HOST')
+EMAIL_PORT = config('EMAIL_PORT', cast=int)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+EMAIL_USE_TILS = True
+
+
+PAYPAL_CLIENT_ID = config('PAYPAL_CLIENT_ID')
+SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin-allow-popups'
