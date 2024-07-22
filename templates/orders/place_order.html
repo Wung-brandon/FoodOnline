@@ -1,0 +1,221 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+
+
+
+<!-- Main Section Start -->
+			<div class="main-section pt-5">
+
+				<div class="page-section">
+					<div class="container">
+						<div class="row">
+
+
+							<div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+								<div class="tabs-holder horizontal">
+									<ul class="stickynav-tabs nav nav-tabs">
+										<li class="active"><a data-toggle="tab" href="#home"><i class="fa fa-shopping-cart text-danger"></i>Your Order</a></li>
+
+									</ul>
+									<div class="tab-content">
+										<div id="home" class="tab-pane in active">
+											<div class="menu-itam-holder">
+
+
+                                                <div>
+
+													<table class="table">
+														<tbody>
+														    {% for items in cart_items %}
+															<tr>
+																<th><img src="{{ item.fooditem.image.url }}" width="40" alt="food image"></th>
+																<td><b>{{ item.fooditem }}</b></td>
+																<td>{{ item.quantity }}</td>
+																<td>{{ item.fooditem.price }}FCFA</td>
+															</tr>
+														{% endfor %}
+														</tbody>
+													</table>
+
+                                                    <ul>
+
+                                                        <li style="list-style-type: none;">
+                                                            Subtotal
+                                                            <span class="price float-right">
+                                                                <span id="subtotal">{{ subtotal }}</span>
+                                                                <span class="currency">FCFA</span>
+                                                            </span>
+
+                                                        </li>
+
+														{% for key, value in tax_dict.items %}
+															{% for i, j in value.items %}
+                                                        <li style="list-style-type: none;">
+                                                                  {{ key }} tax <small>({{ i }})%</small>
+                                                                <span class="price float-right">
+                                                                    <span id="tax-{{ key }}">{{ tax }}</span>
+                                                                <span class="currency">FCFA</span>
+                                                            </span>
+																{% endfor %}
+															{% endfor %}
+
+                                                        </li>
+
+                                                        <li style="list-style-type: none; font-weight: 600;">
+                                                            Total
+                                                                <span class="price float-right">
+                                                                    <span id="total">{{ grand_total }}</span>
+                                                                <span class="currency">FCFA</span>
+                                                            </span>
+
+
+                                                        </li>
+														<!-- Set up a container element for the button -->
+    													<div id="paypal-button-container"></div>
+														 <!-- Include the PayPal JavaScript SDK -->
+
+                                                    </ul>
+                                                </div>
+
+
+											</div>
+										</div>
+
+
+
+									</div>
+								</div>
+							</div>
+
+
+
+<!--                            Your Order Section-->
+                            				<div class="col-lg-8 col-md-8 col-sm-8 col-xs-12">
+								<div class="tabs-holder horizontal">
+									<ul class="stickynav-tabs nav nav-tabs">
+										<li class="active"><a data-toggle="tab" href="#home"><i class="icon- icon-room_service"></i>Review Your Billing Address</a></li>
+
+									</ul>
+									<div class="tab-content">
+										<div id="home" class="tab-pane in active">
+											<div class="menu-itam-holder">
+
+												<div id="menu-item-list-6272" class="menu-itam-list">
+													<div class="billing-address">
+														<div><b>{{ order.name }}</b></div>
+														<div>{{ order.address }}</div>
+														<div>{{ order.city }} - {{ order.pin_code }}</div>
+														<div>{{ order.state }} - {{ order.country }}</div>
+														<div><b>Phone: </b>{{order.phone}}</div>
+														<div><b>Email: </b>{{order.email}}</div>
+														<div><b>Payment: </b>{{order.payment_method}}</div>
+														<br>
+														<div><a href="{% url 'checkout' %}" class="btn btn-outline-danger">Edit</a></div>
+													</div>
+
+
+												</div>
+
+											</div>
+										</div>
+
+
+
+									</div>
+								</div>
+							</div>
+
+
+						</div>
+					</div>
+				</div>
+			</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!--<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.0/dist/sweetalert2.min.css" rel="stylesheet">-->
+<!--<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.0/dist/sweetalert2.all.min.js"></script>-->
+
+<script>
+
+        // Render the PayPal button into #paypal-button-container
+        paypal.Buttons({
+
+            // Call your server to set up the transaction
+            createOrder: function(data, actions) {
+                return fetch('/demo/checkout/api/paypal/order/create/', {
+                    method: 'post'
+                }).then(function(res) {
+                    return res.json();
+                }).then(function(orderData) {
+                    return orderData.id;
+                });
+            },
+
+            // Call your server to finalize the transaction
+            onApprove: function(data, actions) {
+                return fetch('/demo/checkout/api/paypal/order/' + data.orderID + '/capture/', {
+                    method: 'post'
+                }).then(function(res) {
+                    return res.json();
+                }).then(function(orderData) {
+                    // Three cases to handle:
+                    //   (1) Recoverable INSTRUMENT_DECLINED -> call actions.restart()
+                    //   (2) Other non-recoverable errors -> Show a failure message
+                    //   (3) Successful transaction -> Show confirmation or thank you
+
+                    // This example reads a v2/checkout/orders capture response, propagated from the server
+                    // You could use a different API or structure for your 'orderData'
+                    var errorDetail = Array.isArray(orderData.details) && orderData.details[0];
+
+                    if (errorDetail && errorDetail.issue === 'INSTRUMENT_DECLINED') {
+                        return actions.restart(); // Recoverable state, per:
+                        // https://developer.paypal.com/docs/checkout/integration-features/funding-failure/
+                    }
+
+                    if (errorDetail) {
+                        var msg = 'Sorry, your transaction could not be processed.';
+                        if (errorDetail.description) msg += '\n\n' + errorDetail.description;
+                        if (orderData.debug_id) msg += ' (' + orderData.debug_id + ')';
+                        return alert(msg); // Show a failure message (try to avoid alerts in production environments)
+                    }
+
+                    // Successful capture! For demo purposes:
+                    console.log('Capture result', orderData, JSON.stringify(orderData, null, 2));
+                    var transaction = orderData.purchase_units[0].payments.captures[0];
+                    alert('Transaction '+ transaction.status + ': ' + transaction.id + '\n\nSee console for all available details');
+
+                    // Replace the above to show a success message within this page, e.g.
+                    // const element = document.getElementById('paypal-button-container');
+                    // element.innerHTML = '';
+                    // element.innerHTML = '<h3>Thank you for your payment!</h3>';
+                    // Or go to another URL:  actions.redirect('thank_you.html');
+                });
+            }
+
+        }).render('#paypal-button-container');
+
+
+	// function to send data to store in the database
+
+	function sendTransaction(transaction_id, payment_method, status){
+		$.ajax({
+			type:'POST',
+			url:url,
+			data:{
+				'order_number':order_number,
+				'transaction_id':transaction_id,
+				'payment_method':payment_method,
+				'status':status,
+				'csrfmiddlewaretoken':csrftoken
+			},
+			success: function(response){
+				console.log('response==>',response)
+			}
+		})
+	}
+</script>
+
+{% endblock %}

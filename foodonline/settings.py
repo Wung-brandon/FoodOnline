@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'marketplace',
     'customers',
     'orders',
+    'payment',
 ]
 
 MIDDLEWARE = [
@@ -172,3 +173,8 @@ EMAIL_USE_TILS = True
 
 PAYPAL_CLIENT_ID = config('PAYPAL_CLIENT_ID')
 SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin-allow-popups'
+
+# MESOMB CREDENTIALS
+APP_KEY = 'a59b6fddb26240cb05da2dfe2d3008288a479dd5'
+ACCESS_KEY = 'a2e383e6-abff-44f2-b7f7-03d1874d3044'
+SECRET_KEY = '45308b46-e370-43be-849c-fa47711d5cc8'
