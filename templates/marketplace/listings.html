@@ -4,73 +4,98 @@
 
 {% block content %}
 
-
 <!-- Main Section Start -->
-		<div class="main-section">
-			<div class="page-section nopadding cs-nomargin" style="margin-top: 0px;padding-top: 60px;padding-bottom: 10px;margin-bottom: 0px;">
-				<div class="container">
-					<div class="row">
-						<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-							<div class="row">
-								<aside class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
+<div class="main-section">
+    <div class="page-section nopadding cs-nomargin" style="margin-top: 0px;padding-top: 60px;padding-bottom: 10px;margin-bottom: 0px;">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                    <div class="row">
+                        <aside class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
 
-								</aside>
-								<div class="col-lg-7 col-md-7 col-sm-12 col-xs-12">
-									<div class="listing-sorting-holder">
-										<div class="row">
-											<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-												<h4>{{ vendor_count }} Restaurant's found</h4>
-											</div>
-										</div>
-									</div>
-									<div class="listing simple">
-    <ul>
-        {% for vendor in vendors %}
-        <li style="line-height:15px;">
-            <div class="img-holder">
-                <figure>
-                    <a href="#">
-                        {% if vendor.user_profile_profile_picture %}
-                        <img src="{{ vendor.user_profile_profile_picture.url }}" class="img-list wp-post-image" alt="" width="100px">
-                        {% else %}
-                        <img src="{% static 'images/default-profile.PNG' %}" class="img-list wp-post-image" alt="" width="100px">
-                        {% endif %}
-                    </a>
-                </figure>
-            </div>
-            <div class="text-holder">
-                <div class="post-title">
-                    <h5>
-                        <a href="{% url 'vendor_detail' vendor.vendor_slug %}">{{ vendor.vendor_name }}</a>
-                    </h5>
+                        </aside>
+                        <div class="col-lg-7 col-md-7 col-sm-12 col-xs-12">
+                            <div class="listing-sorting-holder">
+                                <div class="row">
+                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                        <h4>{{ vendor_count }} Restaurant's found</h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="listing simple">
+                                <ul>
+                                    {% for vendor in vendors %}
+                                    <li style="line-height:15px;">
+                                        <div class="img-holder">
+                                            <figure>
+                                                <a href="{% if vendor.vendor_slug %}{% url 'vendor_detail' vendor.vendor_slug %}{% else %}#{% endif %}">
+                                                    {% if vendor.user_profile_profile_picture %}
+                                                    <img src="{{ vendor.user_profile_profile_picture.url }}" class="img-list wp-post-image" alt="" width="100px">
+                                                    {% else %}
+                                                    <img src="{% static 'images/default-profile.PNG' %}" class="img-list wp-post-image" alt="" width="100px">
+                                                    {% endif %}
+                                                </a>
+                                            </figure>
+                                        </div>
+                                        <div class="text-holder">
+                                            <div class="post-title">
+                                                <h5>
+                                                    {% if vendor.vendor_slug %}
+                                                    <a href="{% url 'vendor_detail' vendor.vendor_slug %}">{{ vendor.vendor_name }}</a>
+                                                    {% else %}
+                                                    <span>{{ vendor.vendor_name }}</span>
+                                                    {% endif %}
+                                                </h5>
+                                            </div>
+                                            {% if vendor.user_profile.city and vendor.user_profile.address %}
+                                            <span class="text-muted"><small>{{ vendor.user_profile.city }}, {{ vendor.user_profile.address }}</small></span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="list-option">
+                                            {% if vendor.vendor_slug %}
+                                            <a href="{% url 'vendor_detail' vendor.vendor_slug %}" class="viewmenu-btn text-color">View Menu</a>
+                                            {% else %}
+                                            <span class="viewmenu-btn text-muted">Coming Soon</span>
+                                            {% endif %}
+                                        </div>
+                                    </li>
+                                    {% endfor %}
+                                    
+                                    <!-- "I'm not Listed!" card in the same style as restaurant cards -->
+                                    <li style="line-height:15px; background-color: #fa9918;">
+                                        <div class="img-holder">
+                                            <figure>
+                                                <a href="{% url 'registerVendor' %}">
+                                                    <img src="{% static 'images/add-restaurant.png' %}" class="img-list wp-post-image" alt="" width="100px">
+                                                </a>
+                                            </figure>
+                                        </div>
+                                        <div class="text-holder">
+                                            <div class="post-title">
+                                                <h5>
+                                                    <strong>I'm not Listed!</strong>
+                                                </h5>
+                                            </div>
+                                            <span class="text-white"><small>Is your restaurant or business not listed on our site?</small></span>
+                                        </div>
+                                        <div class="list-option">
+                                            <a href="{% url 'registerVendor' %}" class="request-btn viewmenu-btn">Add Your Business!</a>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <!-- Removed the separate section-sidebar as it's now integrated into the list -->
+                        <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+                            <!-- You can add another sidebar element here if needed -->
+                        </div>
+                    </div>
                 </div>
-                {% if vendor.user_profile.city and vendor.user_profile.address %}
-                <span class="text-muted"><small>{{ vendor.user_profile.city }}, {{ vendor.user_profile.address }}</small></span>
-                {% endif %}
             </div>
-            <div class="list-option">
-                <a href="{% url 'vendor_detail' vendor.vendor_slug %}" class="viewmenu-btn text-color">View Menu</a>
-            </div>
-        </li>
-        {% endfor %}
-    </ul>
-</div>
-								<div class="section-sidebar col-lg-3 col-md-3 col-sm-12 col-xs-12">
-    <div class="message-box" style="background-color: #fa9918;">
-        <strong>I'm not Listed!</strong>
-        <span>Is your restaurant or business not listed on our site?</span>
-        <a href="{% url 'registerVendor' %}" class="request-btn">Add Your Business!</a>
+        </div>
     </div>
 </div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-		<!-- Main Section End -->
-
-
-
+<!-- Main Section End -->
 
 {% endblock %}

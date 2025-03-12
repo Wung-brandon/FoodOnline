@@ -39,21 +39,19 @@ def registerUser(request):
         return redirect('myAccount')
     elif request.method == 'POST':
         form = UserForm(request.POST)
-        print(form)
         if form.is_valid():
-            password = form.cleaned_data['password']  # hashing the password
+            password = form.cleaned_data['password']
             user = form.save(commit=False)
             user.set_password(password)
             user.role = User.CUSTOMER
+            user.is_active = True  # Set user as active immediately without verification
             user.save()
-            #
-            # mail_subject = 'Registration Success'
-            # mail_template = 'accounts/emails/account_success.html'
-
-
-            # send_success(request, user, mail_subject, mail_template)
-
-            messages.success(request, 'Your account has been registered Successfully!')
+            
+            # Create a UserProfile object for the user
+            user_profile = UserProfile(user=user)
+            user_profile.save()
+            
+            messages.success(request, 'Your account has been registered successfully! You can now log in.')
             return redirect('login')
         else:
             print(form.errors)
@@ -73,8 +71,7 @@ def registerVendor(request):
         # store data and create user
         form = UserForm(request.POST)
         v_form = VendorForm(request.POST, request.FILES)
-        if form.is_valid() and v_form.is_valid:
-            print('Form data:', form.data)
+        if form.is_valid() and v_form.is_valid():  # Added parentheses to v_form.is_valid
             first_name = form.cleaned_data['first_name']
             last_name = form.cleaned_data['last_name']
             username = form.cleaned_data['username']
@@ -82,8 +79,8 @@ def registerVendor(request):
             password = form.cleaned_data['password']
             user = User.objects.create_user(first_name=first_name,last_name=last_name,username=username,email=email,password=password)
             user.role = User.RESTAURANT
+            user.is_active = False  # Vendor accounts start as inactive until approved
             user.save()
-
 
             mail_subject = 'Please activate your account'
             mail_template = 'accounts/emails/account_verification_email.html'
@@ -98,13 +95,12 @@ def registerVendor(request):
             vendor.user = user
             vendor.user_profile = user_profile
             vendor.save()
-            messages.success(request, 'Your account has been registered Successfully! Please wait for the approval')
+            messages.success(request, 'Your account has been registered successfully! Please wait for the approval.')
             return redirect('login')
         else:
             print('Form errors:', form.errors)
             print('Vendor form errors:', v_form.errors)
             print('invalid form')
-            print(form.errors)
     else:
         form = UserForm()
         v_form = VendorForm()
@@ -125,13 +121,23 @@ def activate(request, uidb64, token):
     if user is not None and default_token_generator.check_token(user, token):
         user.is_active = True
         user.save()
-        messages.success(request, 'Congratulations! Your account is activated')
+        
+        # Check if the user is a vendor (restaurant) and approve them automatically
+        if user.role == User.RESTAURANT:
+            try:
+                vendor = Vendor.objects.get(user=user)
+                vendor.is_approved = True
+                vendor.save()
+                messages.success(request, 'Congratulations! Your restaurant account is activated and approved.')
+            except Vendor.DoesNotExist:
+                pass
+        else:
+            messages.success(request, 'Congratulations! Your account is activated.')
+            
         return redirect('myAccount')
     else:
         messages.error(request, 'Invalid activation link')
         return redirect('myAccount')
-
-    return
 
 def login(request):
     if request.user.is_authenticated:

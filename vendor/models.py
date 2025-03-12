@@ -1,8 +1,6 @@
 
 from django.db import models
-
-
-
+from django.utils.text import slugify
 from django.db import models
 # from django.contrib.auth.models import User
 from accounts.models import User, UserProfile
@@ -32,6 +30,8 @@ class Vendor(models.Model):
         return self.vendor_name
 
     def save(self, *args, **kwargs):
+        if not self.vendor_slug and self.vendor_name:
+            self.vendor_slug = slugify(self.vendor_name)
         #checking if a vendor is approved fot it to display its menu
         if self.pk is not None:
             mail_template = 'accounts/emails/admin_approval_email.html'
